@@ -1,10 +1,17 @@
-import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
+// import type { Edge } from "@xyflow/react"
+import { jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
 
-export const demoUsers = pgTable("demo_users", {
-  id: serial("id").primaryKey(),
+// import type { StepNodeType } from "@/features/workflows/nodes/node-registry"
+
+// export type WorkflowGraph = { nodes: StepNodeType[]; edges: Edge[] }
+
+export const workflows = pgTable("workflows", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: text("org_id").notNull(),
   name: text("name").notNull(),
+  graph: jsonb("graph"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+})
 
-export type DemoUser = typeof demoUsers.$inferSelect;
-export type NewDemoUser = typeof demoUsers.$inferInsert;
+export type Workflow = typeof workflows.$inferSelect
