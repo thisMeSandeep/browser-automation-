@@ -1,34 +1,13 @@
-"use client"
-
 import { OrganizationSwitcher, UserButton } from "@clerk/nextjs"
-import { Plus } from "lucide-react"
 
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarGroup,
-  SidebarGroupAction,
-  SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
   SidebarTrigger,
+  Workflow,
 } from "@/components/ui/sidebar"
-
-const workflows = [
-  "dominant-wasp",
-  "honest-reindeer",
-  "expected-llama",
-  "essential-ocelot",
-  "creepy-echidna",
-  "eastern-silkworm",
-  "cultural-lion",
-  "proud-weasel",
-  "regional-bonobo",
-]
 
 export function AppSidebar() {
   return (
@@ -51,27 +30,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Workflows</SidebarGroupLabel>
-          <SidebarGroupAction title="New workflow">
-            <Plus />
-            <span className="sr-only">New workflow</span>
-          </SidebarGroupAction>
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-1">
-              {workflows.map((workflow, index) => (
-                <SidebarMenuItem key={workflow}>
-                  <SidebarMenuButton
-                    isActive={index === 0}
-                    className="transition-colors duration-200"
-                  >
-                    <span>{workflow}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        <Workflow />
       </SidebarContent>
 
       <SidebarFooter>

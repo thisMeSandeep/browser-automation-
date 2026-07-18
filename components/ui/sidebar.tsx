@@ -22,7 +22,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { PanelLeftIcon } from "lucide-react"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { PanelLeftIcon, Plus, Workflow as WorkflowIcon } from "lucide-react"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -674,6 +679,76 @@ function SidebarMenuSubButton({
   )
 }
 
+const WORKFLOWS = [
+  "dominant-wasp",
+  "honest-reindeer",
+  "expected-llama",
+  "essential-ocelot",
+  "creepy-echidna",
+  "eastern-silkworm",
+  "cultural-lion",
+  "proud-weasel",
+  "regional-bonobo",
+]
+
+// Owns both sidebar states. Expanded: the full workflow list. Collapsed: a
+// single icon button whose popover holds the list plus a "New workflow" action.
+function Workflow() {
+  const { state, isMobile } = useSidebar()
+  const isCollapsed = state === "collapsed" && !isMobile
+
+  const workflowList = (
+    <SidebarMenu className="gap-1">
+      {WORKFLOWS.map((workflow, index) => (
+        <SidebarMenuItem key={workflow}>
+          <SidebarMenuButton
+            isActive={!isCollapsed && index === 0}
+            className="transition-colors duration-200"
+          >
+            <span>{workflow}</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      ))}
+    </SidebarMenu>
+  )
+
+  if (isCollapsed) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <Popover>
+            <PopoverTrigger asChild>
+              <SidebarMenuButton>
+                <WorkflowIcon />
+                <span>Workflows</span>
+              </SidebarMenuButton>
+            </PopoverTrigger>
+            <PopoverContent side="right" align="start">
+              <SidebarMenuButton className="transition-colors duration-200">
+                <Plus />
+                <span>New workflow</span>
+              </SidebarMenuButton>
+              <SidebarSeparator className="mx-0" />
+              {workflowList}
+            </PopoverContent>
+          </Popover>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    )
+  }
+
+  return (
+    <SidebarGroup>
+      <SidebarGroupLabel>Workflows</SidebarGroupLabel>
+      <SidebarGroupAction title="New workflow">
+        <Plus />
+        <span className="sr-only">New workflow</span>
+      </SidebarGroupAction>
+      <SidebarGroupContent>{workflowList}</SidebarGroupContent>
+    </SidebarGroup>
+  )
+}
+
 export {
   Sidebar,
   SidebarContent,
@@ -699,4 +774,5 @@ export {
   SidebarSeparator,
   SidebarTrigger,
   useSidebar,
+  Workflow,
 }
