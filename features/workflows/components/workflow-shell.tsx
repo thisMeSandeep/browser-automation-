@@ -4,6 +4,8 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable"
 
+import { RightSidebar } from "./right-sidebar"
+
 // Layout shell for the workflow editor. Sizes in rem (not percentages).
 export function WorkflowShell({ workflowId }: { workflowId: string }) {
   return (
@@ -29,9 +31,7 @@ export function WorkflowShell({ workflowId }: { workflowId: string }) {
       </ResizablePanel>
       <ResizableHandle />
       <ResizablePanel defaultSize="16rem" minSize="14rem" maxSize="36rem">
-        <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-          Inspector
-        </div>
+        <RightSidebar workflowId={workflowId} />
       </ResizablePanel>
     </ResizablePanelGroup>
   )
