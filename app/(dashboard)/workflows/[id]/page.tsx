@@ -1,3 +1,5 @@
+import { ReactFlowProvider } from "@xyflow/react"
+
 import { Room } from "@/features/workflows/components/room"
 import { WorkflowShell } from "@/features/workflows/components/workflow-shell"
 import { auth } from "@clerk/nextjs/server"
@@ -35,7 +37,11 @@ export default async function WorkflowPage({
 
   return (
     <Room roomId={id}>
-      <WorkflowShell workflowId={id} />
+      {/* One React Flow store above both the canvas and the palette sidebar, so
+          the sidebar can read nodes and add to the same graph the canvas renders. */}
+      <ReactFlowProvider>
+        <WorkflowShell workflowId={id} />
+      </ReactFlowProvider>
     </Room>
   )
 }
