@@ -22,6 +22,9 @@ export async function AppSidebar() {
         <div className="flex items-center justify-between gap-2 group-data-[collapsible=icon]:flex-col">
           <div className="min-w-0 group-data-[collapsible=icon]:hidden">
             <OrganizationSwitcher
+              afterCreateOrganizationUrl="/"
+              afterSelectOrganizationUrl="/"
+              afterLeaveOrganizationUrl="/"
               hidePersonal
               appearance={{
                 elements: {
@@ -43,9 +46,7 @@ export async function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        <UserButton
-          appearance={{ elements: { rootBox: "w-full" } }}
-        />
+        <UserButton appearance={{ elements: { rootBox: "w-full" } }} />
       </SidebarFooter>
     </Sidebar>
   )
