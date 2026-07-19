@@ -7,44 +7,39 @@ import {
   Background,
   ConnectionLineType,
   Controls,
+  NodeTypes,
   ReactFlow,
   useEdgesState,
   useNodesState,
   type ColorMode,
   type Connection,
   type Edge,
-  type Node,
 } from "@xyflow/react"
+
+
+import {StepNode} from "./step-node"
+import type { StepNodeType } from "../nodes/node-registry"
+
 
 import "@xyflow/react/dist/style.css"
 
-const initialNodes: Node[] = [
+
+const nodeTypes: NodeTypes = { step: StepNode }
+
+const initialNodes: StepNodeType[] = [
   {
-    id: "n1",
-    type: "input",
+    id: "start",
+    type: "step",
     position: { x: 0, y: 0 },
-    data: { label: "Start" },
-  },
-  {
-    id: "n2",
-    position: { x: 160, y: 120 },
-    data: { label: "Step" },
-  },
-  {
-    id: "n3",
-    type: "output",
-    position: { x: 0, y: 240 },
-    data: { label: "End" },
+    data: { type: "start", kind: "trigger", title: "Start", values: {} },
   },
 ]
 
-const initialEdges: Edge[] = [
-  { id: "n1-n2", source: "n1", target: "n2" },
-  { id: "n2-n3", source: "n2", target: "n3" },
-]
+const initialEdges: Edge[] = []
+
+
 
 const emptySubscribe = () => () => {}
-
 
 function useMounted() {
   return useSyncExternalStore(
@@ -59,9 +54,8 @@ export function Canvas() {
   const mounted = useMounted()
   const { resolvedTheme } = useTheme()
 
-
   const colorMode: ColorMode = mounted
-    ? (resolvedTheme as ColorMode) ?? "light"
+    ? ((resolvedTheme as ColorMode) ?? "light")
     : "light"
 
   const [nodes, , onNodesChange] = useNodesState(initialNodes)
@@ -75,6 +69,7 @@ export function Canvas() {
   return (
     <div className="h-full w-full">
       <ReactFlow
+        nodeTypes={nodeTypes}
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
