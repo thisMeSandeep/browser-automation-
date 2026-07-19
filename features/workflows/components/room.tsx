@@ -17,9 +17,7 @@ export function Room({
   return (
     <LiveblocksProvider
       throttle={16}
-      publicApiKey={
-        "pk_dev_-kEIC1uC7rt2cLNoVQyyWnWMfaruSY6GQCuswDy_CZoxNJZblhCRUYUJ5-TUJ5R2"
-      }
+      publicApiKey={process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY as string}
     >
       <RoomProvider id={roomId}>
         <ClientSideSuspense fallback={<div>Loading…</div>}>
