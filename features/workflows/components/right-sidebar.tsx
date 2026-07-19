@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { useReactFlow, useStore } from "@xyflow/react"
 import { MoreHorizontal, Play, Trash2 } from "lucide-react"
 import { toast } from "sonner"
@@ -11,6 +12,16 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -25,7 +36,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 
-import { runWorkflowAction } from "@/features/workflows/actions"
+import {
+  deleteWorkflowAction,
+  runWorkflowAction,
+} from "@/features/workflows/actions"
 import {
   nodeRegistry,
   type NodeDefinition,
@@ -261,27 +275,73 @@ function Palette() {
 
 // The "..." menu for workflow-level actions.
 function ActionsMenu({ workflowId }: { workflowId: string }) {
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+  // Confirmation dialog state — controlled so the dropdown item can open it.
+  const [confirmOpen, setConfirmOpen] = useState(false)
+
+  const handleDelete = () => {
+    startTransition(async () => {
+      try {
+        await deleteWorkflowAction(workflowId)
+        // Navigate home from the client so a server redirect can't be swallowed.
+        router.push("/")
+      } catch {
+        toast.error("Couldn't delete the workflow.")
+      }
+    })
+  }
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button size="icon" variant="ghost">
-          <MoreHorizontal />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="min-w-48">
-        <DropdownMenuItem
-          variant="destructive"
-          className="text-xs [&_svg:not([class*='size-'])]:size-3.5"
-          onSelect={() => {
-            // TODO: delete the workflow, then navigate away.
-            void workflowId
-          }}
-        >
-          <Trash2 />
-          Delete workflow
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button size="icon" variant="ghost">
+            <MoreHorizontal />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="min-w-48">
+          <DropdownMenuItem
+            variant="destructive"
+            className="text-xs [&_svg:not([class*='size-'])]:size-3.5"
+            onSelect={(e) => {
+              // Don't run the delete straight away — open the confirmation first.
+              e.preventDefault()
+              setConfirmOpen(true)
+            }}
+          >
+            <Trash2 />
+            Delete workflow
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this workflow?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently deletes the workflow and its collaborative room.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isPending}
+              onClick={(e) => {
+                // Keep the dialog open (and buttons disabled) until the delete
+                // finishes; navigation on success takes us away from it.
+                e.preventDefault()
+                handleDelete()
+              }}
+            >
+              {isPending ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }
 

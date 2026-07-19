@@ -24,6 +24,13 @@ export async function getWorkflow(orgId: string, id: string) {
   return workflow
 }
 
+// Delete the single workflow matching both its ID and organization ID
+export async function deleteWorkflow(orgId: string, id: string) {
+  await db
+    .delete(workflows)
+    .where(and(eq(workflows.id, id), eq(workflows.orgId, orgId)))
+}
+
 // Create a workflow for a given organization
 export async function createWorkflow(orgId: string, name: string) {
   const [workflow] = await db
