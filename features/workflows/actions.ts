@@ -3,15 +3,20 @@
 import { auth } from "@clerk/nextjs/server"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { tasks } from "@trigger.dev/sdk"
+import { runs , tasks } from "@trigger.dev/sdk"
 import { LiveblocksError } from "@liveblocks/node"
 
-import { createWorkflow, deleteWorkflow } from "@/features/workflows/data"
+import {
+  createWorkflow,
+  deleteWorkflow,
+  saveWorkflowGraph,
+} from "@/features/workflows/data"
+import { WorkflowGraph } from "@/lib/db/schema"
 import { liveblocks } from "@/lib/liveblocks"
 // Type-only import so the task code is never bundled into the server action.
 import type { helloWorld } from "@/trigger/example"
 
-// Server actions for workflows. 
+// Server actions for workflows.
 export async function createWorkflowAction(name: string) {
   const { orgId } = await auth()
 
@@ -25,7 +30,6 @@ export async function createWorkflowAction(name: string) {
   revalidatePath("/workflows", "layout")
   redirect(`/workflows/${workflow.id}`)
 }
-
 
 export async function deleteWorkflowAction(workflowId: string) {
   const { orgId } = await auth()
@@ -50,9 +54,14 @@ export async function deleteWorkflowAction(workflowId: string) {
   revalidatePath("/workflows", "layout")
 }
 
-
 // Server action to run a workflow.
-export async function runWorkflowAction(workflowId: string) {
+export async function runWorkflowAction({
+  id,
+  graph,
+}: {
+  id: string
+  graph: WorkflowGraph
+}) {
   const { orgId } = await auth()
 
   if (!orgId) {
@@ -60,11 +69,23 @@ export async function runWorkflowAction(workflowId: string) {
   }
 
   // Trigger by id with a type-only handle for full payload type-safety.
+  await saveWorkflowGraph({ orgId, id, graph })
+
   const handle = await tasks.trigger<typeof helloWorld>("hello-world", {
-    message: `Run workflow ${workflowId}`,
+    message: "Hello from the server action!",
   })
 
-  // `publicAccessToken` is scoped to this run — the frontend uses it to
-  // subscribe to realtime updates via useRealtimeRun.
-  return { runId: handle.id, publicAccessToken: handle.publicAccessToken }
+  return handle
+}
+
+
+// cancel a workflow run by run id
+export async function cancelWorkflowRunAction(runId: string) {
+  const { orgId } = await auth()
+
+  if (!orgId) {
+    throw new Error("No active organization")
+  }
+
+  await runs.cancel(runId)
 }

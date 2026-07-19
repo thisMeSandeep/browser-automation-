@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { useReactFlow, useStore } from "@xyflow/react"
-import { MoreHorizontal, Play, Trash2 } from "lucide-react"
+import { MoreHorizontal, Play, Square, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
 import {
@@ -37,6 +37,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 
 import {
+  cancelWorkflowRunAction,
   deleteWorkflowAction,
   runWorkflowAction,
 } from "@/features/workflows/actions"
@@ -48,6 +49,7 @@ import {
   type StepNodeKind,
   type StepNodeType,
 } from "@/features/workflows/nodes/node-registry"
+import { validateGraph } from "../lib/validate-graph"
 
 // This file builds up to the RightSidebar component exported at the bottom: a
 // header with workflow actions (delete, run), then two tabs — a Toolbar for
@@ -204,7 +206,10 @@ function Palette() {
     const nodes = getNodes()
 
     // Only one trigger is allowed — a workflow has a single entry point.
-    if (def.kind === "trigger" && nodes.some((n) => n.data.kind === "trigger")) {
+    if (
+      def.kind === "trigger" &&
+      nodes.some((n) => n.data.kind === "trigger")
+    ) {
       toast.error("A workflow can only have one trigger.")
       return
     }
@@ -347,7 +352,33 @@ function ActionsMenu({ workflowId }: { workflowId: string }) {
 
 // Kicks off a run of the current workflow.
 function RunButton({ workflowId }: { workflowId: string }) {
+  const { getNodes, getEdges } = useReactFlow<StepNodeType>()
   const [isPending, startTransition] = useTransition()
+  // The run in flight, if any. At most one is live at a time, so its presence
+  // decides which mode the button is in.
+  // const liveRun = useLiveRun()
+
+  // if (liveRun) {
+  //   return (
+  //     <Button
+  //       size="sm"
+  //       variant="destructive"
+  //       disabled={isPending}
+  //       // onClick={() => {
+  //       //   startTransition(async () => {
+  //       //     try {
+  //       //       await cancelWorkflowRunAction(liveRun.id)
+  //       //     } catch {
+  //       //       toast.error("Couldn't stop the run.")
+  //       //     }
+  //       //   })
+  //       // }}
+  //     >
+  //       <Square fill="currentColor" />
+  //       Stop
+  //     </Button>
+  //   )
+  // }
 
   return (
     <Button
@@ -355,8 +386,15 @@ function RunButton({ workflowId }: { workflowId: string }) {
       variant="secondary"
       disabled={isPending}
       onClick={() => {
+        const graph = { nodes: getNodes(), edges: getEdges() }
+        const problems = validateGraph(graph)
+        if (problems.length > 0) {
+          toast.error(problems[0])
+          return
+        }
+
         startTransition(async () => {
-          await runWorkflowAction(workflowId)
+          await runWorkflowAction({ id: workflowId, graph })
         })
       }}
     >

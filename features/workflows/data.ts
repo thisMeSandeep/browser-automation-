@@ -1,10 +1,27 @@
 import { and, desc, eq } from "drizzle-orm"
 
 import { db } from "@/lib/db"
-import { workflows } from "@/lib/db/schema"
+import { WorkflowGraph, workflows } from "@/lib/db/schema"
+import { validateGraph } from "@/features/workflows/lib/validate-graph"
 
-// List all workflows for a given organization
-export async function listWorkflows(orgId: string) {
+export async function saveWorkflowGraph({
+  orgId,
+  id,
+  graph,
+}: {
+  orgId: string
+  id: string
+  graph: WorkflowGraph
+}) {
+  const problems = validateGraph(graph)
+  if (problems.length > 0) throw new Error(problems.join(" "))
+  await db
+    .update(workflows)
+    .set({ graph, updatedAt: new Date() })
+    .where(and(eq(workflows.id, id), eq(workflows.orgId, orgId)))
+}
+
+export function listWorkflows(orgId: string) {
   return db
     .select()
     .from(workflows)
@@ -12,30 +29,28 @@ export async function listWorkflows(orgId: string) {
     .orderBy(desc(workflows.createdAt))
 }
 
-
-// Get the single workflow matching both its ID and organization ID
 export async function getWorkflow(orgId: string, id: string) {
   const [workflow] = await db
     .select()
     .from(workflows)
     .where(and(eq(workflows.id, id), eq(workflows.orgId, orgId)))
-    .limit(1)
 
   return workflow
 }
 
-// Delete the single workflow matching both its ID and organization ID
-export async function deleteWorkflow(orgId: string, id: string) {
-  await db
-    .delete(workflows)
-    .where(and(eq(workflows.id, id), eq(workflows.orgId, orgId)))
-}
-
-// Create a workflow for a given organization
 export async function createWorkflow(orgId: string, name: string) {
   const [workflow] = await db
     .insert(workflows)
     .values({ orgId, name })
+    .returning()
+
+  return workflow
+}
+
+export async function deleteWorkflow(orgId: string, id: string) {
+  const [workflow] = await db
+    .delete(workflows)
+    .where(and(eq(workflows.id, id), eq(workflows.orgId, orgId)))
     .returning()
 
   return workflow
