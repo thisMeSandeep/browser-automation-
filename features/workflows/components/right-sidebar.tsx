@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ResizablePanel } from "@/components/ui/resizable"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
 
 import { runWorkflowAction } from "@/features/workflows/actions"
@@ -85,7 +86,8 @@ function Section({
 // Editor tab — edits the fields of the selected node.
 // ---------------------------------------------------------------------------
 
-// A single editor field for a node property.
+// A single editor field for a node property. Renders a multi-line textarea when
+// the field opts in via `multiline`, otherwise a single-line input.
 function FieldInput({
   field,
   value,
@@ -95,6 +97,18 @@ function FieldInput({
   value: string
   onChange: (value: string) => void
 }) {
+  if (field.multiline) {
+    return (
+      <Textarea
+        id={field.key}
+        value={value}
+        placeholder={field.placeholder}
+        rows={6}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    )
+  }
+
   return (
     <Input
       id={field.key}
@@ -130,6 +144,7 @@ function Inspector({ node }: { node: StepNodeType | undefined }) {
             <div key={field.key} className="flex flex-col gap-1.5">
               <Label htmlFor={field.key} className="text-xs">
                 {field.label}
+                {field.required && <span className="text-destructive">*</span>}
               </Label>
               <FieldInput
                 field={field}
