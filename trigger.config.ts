@@ -2,7 +2,7 @@ import { defineConfig } from "@trigger.dev/sdk";
 
 export default defineConfig({
   project: "proj_xfzdnnujmvuoovkpizyb",
-  dirs: ["./trigger"],
+  dirs: ["features"],
   maxDuration: 3600,
   retries: {
     enabledInDev: false,

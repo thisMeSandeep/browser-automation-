@@ -3,7 +3,7 @@
 import { auth } from "@clerk/nextjs/server"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import { runs , tasks } from "@trigger.dev/sdk"
+import { runs, tasks } from "@trigger.dev/sdk"
 import { LiveblocksError } from "@liveblocks/node"
 
 import {
@@ -14,7 +14,7 @@ import {
 import { WorkflowGraph } from "@/lib/db/schema"
 import { liveblocks } from "@/lib/liveblocks"
 // Type-only import so the task code is never bundled into the server action.
-import type { helloWorld } from "@/trigger/example"
+import type { runWorkflowTask } from "@/features/workflows/tasks/run-workflow"
 
 // Server actions for workflows.
 export async function createWorkflowAction(name: string) {
@@ -71,13 +71,18 @@ export async function runWorkflowAction({
   // Trigger by id with a type-only handle for full payload type-safety.
   await saveWorkflowGraph({ orgId, id, graph })
 
-  const handle = await tasks.trigger<typeof helloWorld>("hello-world", {
-    message: "Hello from the server action!",
-  })
-
+  const handle = await tasks.trigger<typeof runWorkflowTask>(
+    "run-workflow",
+    {
+      workflowId: id,
+      orgId,
+    },
+    {
+      tags: [`workflow:${id}`],
+    }
+  )
   return handle
 }
-
 
 // cancel a workflow run by run id
 export async function cancelWorkflowRunAction(runId: string) {
